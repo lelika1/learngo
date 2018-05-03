@@ -183,7 +183,7 @@ func (m *Map) Rm(k Key) {
 	}
 	curNode.key = leastNode.left.key
 	curNode.value = leastNode.left.value
-	leastNode.left = nil
+	leastNode.left = leastNode.left.right
 }
 
 func main() {
