@@ -28,12 +28,13 @@ type Map struct {
 // Insert returns an error if the key already exists.
 // Problems with v *Value ??
 func (m *Map) Insert(k Key, v Value) {
-	newNode := Node{
+	newNode := &Node{
 		key:   k,
 		value: v,
 	}
+
 	if m.root == nil {
-		m.root = &newNode
+		m.root = newNode
 		return
 	}
 
@@ -46,7 +47,7 @@ func (m *Map) Insert(k Key, v Value) {
 
 		if curNode.key < k {
 			if curNode.right == nil {
-				curNode.right = &newNode
+				curNode.right = newNode
 				break
 			}
 
@@ -55,7 +56,7 @@ func (m *Map) Insert(k Key, v Value) {
 		}
 
 		if curNode.left == nil {
-			curNode.left = &newNode
+			curNode.left = newNode
 			break
 		}
 
@@ -80,24 +81,24 @@ func (m *Map) Find(k Key) (*Value, bool) {
 	return nil, false
 }
 
-func (m *Map) printPartTree(r *Node) {
-	fmt.Printf("(k: %v, v: %v)\n", r.key, r.value)
+func (m *Map) printPartTree(r *Node) string {
+	str := fmt.Sprintf("(k: %v, v: %v)\n", r.key, r.value)
 	if r.left != nil {
-		m.printPartTree(r.left)
+		str += m.printPartTree(r.left)
 	}
 	if r.right != nil {
-		m.printPartTree(r.right)
+		str += m.printPartTree(r.right)
 	}
+	return str
 }
 
 // Print map in prefix traverse
-func (m *Map) Print() {
+func (m *Map) String() string {
 	if m.root == nil {
-		fmt.Println("Map is empty")
-		return
+		return "Map is empty"
 	}
 
-	m.printPartTree(m.root)
+	return m.printPartTree(m.root)
 }
 
 // Rm removes a given key if it is present in the map.
@@ -206,7 +207,7 @@ func main() {
 	m.Insert(20, 20)
 
 	fmt.Println("Initial map")
-	m.Print()
+	fmt.Printf("%s", &m)
 
 	var key Key = 60
 	if v, ok := m.Find(key); ok {
@@ -215,7 +216,7 @@ func main() {
 	}
 
 	fmt.Printf("\nMap after changing value for key %v\n", key)
-	m.Print()
+	fmt.Printf("%s", &m)
 
 	key = 10
 	if _, ok := m.Find(key); !ok {
@@ -225,5 +226,5 @@ func main() {
 	key = 150
 	fmt.Printf("\nMap after removing key %v\n", key)
 	m.Rm(key)
-	m.Print()
+	fmt.Printf("%s", &m)
 }
