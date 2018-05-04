@@ -1,8 +1,9 @@
 package parity_test
 
 import (
-	"eopi/parity_5_1/parity"
 	"testing"
+
+	"bitbucket.org/lelika/learngo/eopi/parity_5_1/parity"
 )
 
 func TestParity(t *testing.T) {
