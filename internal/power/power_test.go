@@ -4,7 +4,7 @@ import (
 	"math"
 	"testing"
 
-	"bitbucket.org/lelika/learngo/eopi/degree_5_7/power"
+	"github.com/lelika1/learngo/eopi/degree_5_7/power"
 )
 
 func TestPowerSimple(t *testing.T) {

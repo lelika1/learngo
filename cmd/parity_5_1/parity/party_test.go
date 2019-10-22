@@ -3,7 +3,7 @@ package parity_test
 import (
 	"testing"
 
-	"bitbucket.org/lelika/learngo/eopi/parity_5_1/parity"
+	"github.com/lelika1/learngo/eopi/parity_5_1/parity"
 )
 
 func TestParity(t *testing.T) {
