@@ -1,4 +1,4 @@
-package mylist
+package list
 
 import (
 	"strconv"

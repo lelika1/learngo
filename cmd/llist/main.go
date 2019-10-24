@@ -3,14 +3,17 @@ package main
 import (
 	"fmt"
 
-	"github.com/lelika1/learngo/internal/mylist"
+	"github.com/lelika1/learngo/internal/list"
 )
 
 func main() {
-	var list mylist.List
-	list.Add(5)
-	list.Add(4)
-	list.Add(3)
-	list.Add(7)
-	fmt.Println(list.String())
+	var l list.List
+	// l.Add(5)
+	// l.Add(4)
+	// l.Add(3)
+	// l.Add(7)
+	// fmt.Println(l.String())
+	var list2 list.List
+	newlist := list.Merge(l, list2)
+	fmt.Println(newlist.String())
 }
