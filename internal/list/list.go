@@ -73,9 +73,9 @@ func (l *List) Insert(i, value int) (ok bool) {
 
 // Extract removes the node with index i from the list, if there is one.
 // Returns the removed node or nil
-func (l *List) Extract(i int) *Node {
+func (l *List) Extract(i int) (value int, ok bool) {
 	if i >= l.Size() || i < 0 {
-		return nil
+		return 0, false
 	}
 	l.size--
 	node := l.root
@@ -84,7 +84,7 @@ func (l *List) Extract(i int) *Node {
 		if l.Size() == 0 {
 			l.end = nil
 		}
-		return node
+		return node.value, true
 	}
 
 	prevNode := l.root
@@ -99,7 +99,7 @@ func (l *List) Extract(i int) *Node {
 		l.end = prevNode
 	}
 
-	return node
+	return node.value, true
 }
 
 // Add to new item to the list
@@ -118,20 +118,18 @@ func (l *List) Add(newVal int) {
 // String returns all values of the list in one string
 func (l *List) String() string {
 	var sb strings.Builder
-	sb.WriteString("[")
+	sb.WriteRune('[')
 
 	if l.root != nil {
-		curNode := l.root
-		for curNode != nil {
+		for curNode := l.root; curNode != nil; curNode = curNode.next {
 			sb.WriteString(strconv.Itoa(curNode.value))
 			if curNode != l.end {
-				sb.WriteString(" ")
+				sb.WriteRune(' ')
 			}
-			curNode = curNode.next
 		}
 	}
 
-	sb.WriteString("]")
+	sb.WriteRune(']')
 	return sb.String()
 }
 
@@ -152,11 +150,6 @@ func (l *List) Get(i int) (value int, ok bool) {
 // Begin returns the pointer to the root node of the list
 func (l *List) Begin() *Node {
 	return l.root
-}
-
-// End returns the pointer to the end node of the list
-func (l *List) End() *Node {
-	return l.end
 }
 
 // Value returns the value of the given node
