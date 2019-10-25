@@ -1,8 +1,9 @@
 package main
 
 import (
-	"eopi/parity_5_1/parity"
 	"fmt"
+
+	"github.com/lelika1/learngo/internal/parity"
 )
 
 func main() {
