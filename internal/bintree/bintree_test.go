@@ -15,6 +15,7 @@ func TestMerge(t *testing.T) {
 	tree.Add(1)
 	tree.Add(12)
 	tree.Add(13)
+
 	want := "[1 2 4 5 10 12 13]"
 	got := tree.ToString(bintree.InOrder)
 	if got != want {

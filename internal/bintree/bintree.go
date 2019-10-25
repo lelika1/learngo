@@ -29,92 +29,69 @@ type Tree struct {
 
 // Add to tree
 func (t *Tree) Add(val int) {
-	newNode := &Node{val, nil, nil}
+	newNode := &Node{value: val}
 	if t.root == nil {
 		t.root = newNode
 		return
 	}
-	curNode := t.root
-	var stop bool = false
-	for !stop {
+
+	for curNode := t.root; ; {
 		if curNode.value > val {
 			if curNode.left == nil {
 				curNode.left = newNode
-				stop = true
+				break
 			}
 			curNode = curNode.left
-		} else if curNode.value < val {
+			continue
+		}
+		if curNode.value < val {
 			if curNode.right == nil {
 				curNode.right = newNode
-				stop = true
+				break
 			}
 			curNode = curNode.right
+			continue
 		}
-
+		return
 	}
 }
 
-func (t *Tree) inString() string {
-	curNode := t.root
-	if curNode == nil {
+func (t Tree) inOrder() string {
+	if t.root == nil {
 		return ""
 	}
+
 	var result string
-	if curNode.left != nil {
-		leftTree := Tree{curNode.left}
-		result += leftTree.inString()
-	}
+	result += Tree{t.root.left}.inOrder()
 	result += " "
-	result += strconv.Itoa(curNode.value)
-	if curNode.right != nil {
-		rightTree := Tree{curNode.right}
-		result += rightTree.inString()
-	}
+	result += strconv.Itoa(t.root.value)
+	result += Tree{t.root.right}.inOrder()
 	return result
 }
 
-func (t *Tree) preString() string {
-	curNode := t.root
-	if curNode == nil {
+func (t Tree) preOrder() string {
+	if t.root == nil {
 		return ""
 	}
+
 	var result string
-
 	result += " "
-	result += strconv.Itoa(curNode.value)
-
-	if curNode.left != nil {
-		leftTree := Tree{curNode.left}
-		result += leftTree.preString()
-	}
-
-	if curNode.right != nil {
-		rightTree := Tree{curNode.right}
-		result += rightTree.preString()
-	}
+	result += strconv.Itoa(t.root.value)
+	result += Tree{t.root.left}.preOrder()
+	result += Tree{t.root.right}.preOrder()
 	return result
 }
 
-func (t *Tree) postString() string {
-	curNode := t.root
-	if curNode == nil {
+func (t Tree) postOrder() string {
+	if t.root == nil {
 		return ""
 	}
+
 	var result string
-
-	if curNode.left != nil {
-		leftTree := Tree{curNode.left}
-		result += leftTree.postString()
-	}
-
-	if curNode.right != nil {
-		rightTree := Tree{curNode.right}
-		result += rightTree.postString()
-	}
-
+	result += Tree{t.root.left}.postOrder()
+	result += Tree{t.root.right}.postOrder()
 	result += " "
-	result += strconv.Itoa(curNode.value)
-
+	result += strconv.Itoa(t.root.value)
 	return result
 }
 
@@ -126,11 +103,11 @@ func (t Tree) String() string {
 func (t *Tree) ToString(order Order) string {
 	switch order {
 	case InOrder:
-		return "[" + strings.TrimSpace(t.inString()) + "]"
+		return "[" + strings.TrimSpace(t.inOrder()) + "]"
 	case PreOrder:
-		return "[" + strings.TrimSpace(t.preString()) + "]"
+		return "[" + strings.TrimSpace(t.preOrder()) + "]"
 	case PostOrder:
-		return "[" + strings.TrimSpace(t.postString()) + "]"
+		return "[" + strings.TrimSpace(t.postOrder()) + "]"
 	}
 	return ""
 }
