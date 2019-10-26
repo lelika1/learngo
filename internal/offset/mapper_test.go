@@ -8,7 +8,7 @@ import (
 )
 
 func TestToLineColumn(t *testing.T) {
-	const input = "abcd\nef\ngt"
+	const input = "abcd\nef\ngt\n"
 	m := offset.NewMapper(input)
 
 	tests := []struct {
@@ -22,7 +22,10 @@ func TestToLineColumn(t *testing.T) {
 		{4, "0:4"},
 		{5, "1:0"},
 		{6, "1:1"},
-		{9, "2:0"},
+		{8, "2:0"},
+		{9, "2:1"},
+		{10, "2:2"},
+		{11, "?"},
 		{99, "?"},
 		{-1, "?"},
 	}
@@ -51,7 +54,7 @@ func TestLineOffset(t *testing.T) {
 	}{
 		{line: 0, want: 0},
 		{line: 1, want: 5},
-		{line: 2, want: 9},
+		{line: 2, want: 8},
 		{line: -1, want: -1},
 		{line: 3, want: -1},
 		{line: 4, want: -1},
