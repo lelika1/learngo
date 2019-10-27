@@ -20,6 +20,9 @@ type Mapper struct {
 
 // NewMapper returns a mapper for a given content.
 func NewMapper(content string) *Mapper {
+	if len(content) == 0 {
+		return new(Mapper)
+	}
 	rows := strings.SplitAfter(content, "\n")
 	rowStart := make([]int, 1, len(rows))
 	for i := 1; i < len(rows); i++ {
@@ -49,10 +52,14 @@ func (m *Mapper) ToLineColumn(offset int) (line, col int, ok bool) {
 	return row, offset - m.rowStart[row], true
 }
 
-// LineOffset returns byte offset for the begining of the given string.
-func (m *Mapper) LineOffset(line int) (offset int, ok bool) {
+// LineOffset returns byte offset for the begining of the given line and the length
+// of this line (including \n in the end, if there is one).
+func (m *Mapper) LineOffset(line int) (offset, lineLen int, ok bool) {
 	if line < 0 || line >= len(m.rowStart) {
-		return 0, false
+		return 0, 0, false
 	}
-	return m.rowStart[line], true
+	if line == len(m.rowStart)-1 {
+		return m.rowStart[line], m.contentSize - m.rowStart[line], true
+	}
+	return m.rowStart[line], m.rowStart[line+1] - m.rowStart[line], true
 }
