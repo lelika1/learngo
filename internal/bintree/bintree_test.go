@@ -6,7 +6,7 @@ import (
 	"github.com/lelika1/learngo/internal/bintree"
 )
 
-func TestMerge(t *testing.T) {
+func TestToStrint(t *testing.T) {
 	var tree bintree.Tree
 	tree.Add(5)
 	tree.Add(10)

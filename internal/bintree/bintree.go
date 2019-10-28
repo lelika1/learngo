@@ -60,13 +60,34 @@ func (t Tree) inOrder() string {
 	if t.root == nil {
 		return ""
 	}
+	var sb strings.Builder
+	curNode := t.root
+	nodes := []*Node{curNode}
+	for len(nodes) != 0 {
+		for curNode.left != nil {
+			curNode = curNode.left
+			nodes = append(nodes, curNode)
+		}
 
-	var result string
-	result += Tree{t.root.left}.inOrder()
-	result += " "
-	result += strconv.Itoa(t.root.value)
-	result += Tree{t.root.right}.inOrder()
-	return result
+		curNode = nodes[len(nodes)-1]
+		nodes = nodes[:len(nodes)-1]
+
+		sb.WriteRune(' ')
+		sb.WriteString(strconv.Itoa(curNode.value))
+
+		for len(nodes) != 0 || curNode.right != nil {
+			if curNode.right != nil {
+				curNode = curNode.right
+				nodes = append(nodes, curNode)
+				break
+			}
+			curNode = nodes[len(nodes)-1]
+			nodes = nodes[:len(nodes)-1]
+			sb.WriteRune(' ')
+			sb.WriteString(strconv.Itoa(curNode.value))
+		}
+	}
+	return sb.String()
 }
 
 func (t Tree) preOrder() string {
