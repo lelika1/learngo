@@ -17,7 +17,7 @@ func TestToStrint(t *testing.T) {
 	tree.Add(13)
 
 	want := "[1 2 4 5 10 12 13]"
-	got := tree.ToString(bintree.InOrder)
+	got := bintree.PrintContainer(tree.InOrder)
 	if got != want {
 		t.Fatalf("ToString(InOrder) failed. Got:%v Want: %v", got, want)
 	}
@@ -27,13 +27,13 @@ func TestToStrint(t *testing.T) {
 	}
 
 	want = "[5 2 1 4 10 12 13]"
-	got = tree.ToString(bintree.PreOrder)
+	got = bintree.PrintContainer(tree.PreOrder)
 	if got != want {
 		t.Fatalf("ToString(PreOrder) failed. Got:%v Want: %v", got, want)
 	}
 
 	want = "[1 4 2 13 12 10 5]"
-	got = tree.ToString(bintree.PostOrder)
+	got = bintree.PrintContainer(tree.PostOrder)
 	if got != want {
 		t.Fatalf("ToString(PostOrder) failed. Got:%v Want: %v", got, want)
 	}

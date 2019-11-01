@@ -56,11 +56,15 @@ func (t *Tree) Add(val int) {
 	}
 }
 
-func (t Tree) inOrder() string {
+// Consumer ...
+type Consumer func(v int)
+
+// InOrder traverses the tree in order and calls fn for every entry in the tree.
+func (t Tree) InOrder(fn Consumer) {
 	if t.root == nil {
-		return ""
+		return
 	}
-	var sb strings.Builder
+
 	curNode := t.root
 	nodes := []*Node{curNode}
 	for len(nodes) != 0 {
@@ -70,10 +74,8 @@ func (t Tree) inOrder() string {
 		}
 
 		curNode = nodes[len(nodes)-1]
+		fn(curNode.value)
 		nodes = nodes[:len(nodes)-1]
-
-		sb.WriteRune(' ')
-		sb.WriteString(strconv.Itoa(curNode.value))
 
 		for len(nodes) != 0 || curNode.right != nil {
 			if curNode.right != nil {
@@ -82,53 +84,50 @@ func (t Tree) inOrder() string {
 				break
 			}
 			curNode = nodes[len(nodes)-1]
+			fn(curNode.value)
 			nodes = nodes[:len(nodes)-1]
-			sb.WriteRune(' ')
-			sb.WriteString(strconv.Itoa(curNode.value))
 		}
 	}
-	return sb.String()
 }
 
-func (t Tree) preOrder() string {
+// PreOrder ...
+func (t Tree) PreOrder(fn Consumer) {
 	if t.root == nil {
-		return ""
+		return
 	}
 
-	var result string
-	result += " "
-	result += strconv.Itoa(t.root.value)
-	result += Tree{t.root.left}.preOrder()
-	result += Tree{t.root.right}.preOrder()
-	return result
+	fn(t.root.value)
+	Tree{t.root.left}.PreOrder(fn)
+	Tree{t.root.right}.PreOrder(fn)
 }
 
-func (t Tree) postOrder() string {
+// PostOrder ...
+func (t Tree) PostOrder(fn Consumer) {
 	if t.root == nil {
-		return ""
+		return
 	}
-
-	var result string
-	result += Tree{t.root.left}.postOrder()
-	result += Tree{t.root.right}.postOrder()
-	result += " "
-	result += strconv.Itoa(t.root.value)
-	return result
+	Tree{t.root.left}.PostOrder(fn)
+	Tree{t.root.right}.PostOrder(fn)
+	fn(t.root.value)
 }
 
 func (t Tree) String() string {
-	return t.ToString(InOrder)
+	return PrintContainer(t.InOrder)
 }
 
-// ToString formats the contents of the tree in the given order.
-func (t *Tree) ToString(order Order) string {
-	switch order {
-	case InOrder:
-		return "[" + strings.TrimSpace(t.inOrder()) + "]"
-	case PreOrder:
-		return "[" + strings.TrimSpace(t.preOrder()) + "]"
-	case PostOrder:
-		return "[" + strings.TrimSpace(t.postOrder()) + "]"
-	}
-	return ""
+// TraverseFn ...
+type TraverseFn func(consumer Consumer)
+
+// PrintContainer formats the contents of the tree in the given order.
+func PrintContainer(traverse TraverseFn) string {
+	var sb strings.Builder
+	sb.WriteRune('[')
+	traverse(func(v int) {
+		if sb.Len() != 1 {
+			sb.WriteRune(' ')
+		}
+		sb.WriteString(strconv.Itoa(v))
+	})
+	sb.WriteRune(']')
+	return sb.String()
 }
