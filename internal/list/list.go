@@ -115,19 +115,26 @@ func (l *List) Add(newVal int) {
 	l.end = l.end.next
 }
 
+// Traverse list
+func (l *List) Traverse(fn func(val int)) {
+	if l.root != nil {
+		for curNode := l.root; curNode != nil; curNode = curNode.next {
+			fn(curNode.value)
+		}
+	}
+}
+
 // String returns all values of the list in one string
 func (l *List) String() string {
 	var sb strings.Builder
 	sb.WriteRune('[')
 
-	if l.root != nil {
-		for curNode := l.root; curNode != nil; curNode = curNode.next {
-			sb.WriteString(strconv.Itoa(curNode.value))
-			if curNode != l.end {
-				sb.WriteRune(' ')
-			}
+	l.Traverse(func(v int) {
+		if sb.Len() != 1 {
+			sb.WriteRune(' ')
 		}
-	}
+		sb.WriteString(strconv.Itoa(v))
+	})
 
 	sb.WriteRune(']')
 	return sb.String()
