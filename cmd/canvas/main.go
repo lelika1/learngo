@@ -21,5 +21,7 @@ func main() {
 		c.Circle(canvas.Point{X: 25, Y: 25}, i, cl)
 	}
 
-	fmt.Println(c.ExportColor())
+	fmt.Println(c.Export(canvas.Color.String))
+	fmt.Println(c.Export(canvas.ColoredString))
+
 }

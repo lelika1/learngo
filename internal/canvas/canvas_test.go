@@ -47,7 +47,7 @@ func TestNewCanvas(t *testing.T) {
 			continue
 		}
 
-		got := c.Export()
+		got := c.Export(canvas.Color.String)
 		if got != tc.want {
 			t.Errorf("NewCanvas(%v, %v) = %q, want %q", tc.w, tc.h, got, tc.want)
 		}
@@ -125,7 +125,7 @@ func TestImportExport(t *testing.T) {
 			t.Errorf("Import(%q) return status %v, want %v", tc.input, err.Error(), tc.err)
 		}
 		if err == nil {
-			if got := c.Export(); got != tc.want {
+			if got := c.Export(canvas.Color.String); got != tc.want {
 				t.Errorf("Import/Export(%q) = %q, want %q", tc.input, got, tc.want)
 			}
 		}
@@ -191,7 +191,7 @@ func TestDot(t *testing.T) {
 	for _, tc := range tests {
 		c, _ := canvas.NewCanvas(2, 3)
 		c.Dot(tc.input, tc.color)
-		got := c.Export()
+		got := c.Export(canvas.Color.String)
 		if got != tc.want {
 			t.Errorf("Dot(%v, %v) = %q, want %q", tc.input, tc.color, got, tc.want)
 		}
@@ -264,7 +264,7 @@ func TestRect(t *testing.T) {
 	for _, tc := range tests {
 		c, _ := canvas.NewCanvas(3, 4)
 		c.Rect(tc.left, tc.right, tc.color)
-		got := c.Export()
+		got := c.Export(canvas.Color.String)
 		if got != tc.want {
 			t.Errorf("Rect(%v, %v, %v) = %q, want %q", tc.left, tc.right, tc.color, got, tc.want)
 		}
@@ -343,7 +343,7 @@ func TestCircle(t *testing.T) {
 	for _, tc := range tests {
 		c, _ := canvas.NewCanvas(5, 5)
 		c.Circle(tc.center, tc.rad, tc.color)
-		got := c.Export()
+		got := c.Export(canvas.Color.String)
 		if got != tc.want {
 			t.Errorf("Circle(%v, %v, %v) = %q, want %q", tc.center, tc.rad, tc.color, got, tc.want)
 		}
@@ -436,7 +436,7 @@ func TestFill(t *testing.T) {
 			t.Fatalf("canvas.Import(%q): %v", input, err)
 		}
 		c.Fill(tc.p, tc.color)
-		got := c.Export()
+		got := c.Export(canvas.Color.String)
 		if got != tc.want {
 			t.Errorf("Fill(%v, %v) = %q, want %q", tc.p, tc.color, got, tc.want)
 		}

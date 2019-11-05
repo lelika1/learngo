@@ -166,43 +166,19 @@ func (c *Canvas) Fill(p Point, cl Color) {
 	}
 }
 
-// Visitor processes every canvas pixel
-type Visitor func(i, j int, cl Color)
+// Format ...
+type Format func(c Color) string
 
-// Traverse calls function fn for all pixels of the canvas
-func (c *Canvas) Traverse(fn Visitor) {
-	for i, row := range c.canvas {
-		for j, p := range row {
-			fn(i, j, p)
+// Export returns a string represantation of the canvas with given format
+func (c *Canvas) Export(f Format) string {
+	var sb strings.Builder
+
+	for _, row := range c.canvas {
+		for _, p := range row {
+			sb.WriteString(f(p))
 		}
+		sb.WriteRune('\n')
 	}
-}
-
-// Export returns a string representation of the Canvas.
-// Use this function in connection with Import
-func (c *Canvas) Export() string {
-	var sb strings.Builder
-
-	c.Traverse(func(i, j int, cl Color) {
-		sb.WriteString(cl.String())
-		if j == c.width-1 {
-			sb.WriteRune('\n')
-		}
-	})
-
-	return sb.String()
-}
-
-// ExportColor returns a string that can be printed colored.
-func (c *Canvas) ExportColor() string {
-	var sb strings.Builder
-
-	c.Traverse(func(i, j int, cl Color) {
-		sb.WriteString(cl.coloredString())
-		if j == c.width-1 {
-			sb.WriteRune('\n')
-		}
-	})
 
 	return sb.String()
 }
@@ -232,6 +208,7 @@ const (
 	MaxColor
 )
 
+// String ...
 func (c Color) String() string {
 	switch c {
 	case White:
@@ -250,7 +227,8 @@ func (c Color) String() string {
 	return "?"
 }
 
-func (c Color) coloredString() string {
+// ColoredString ...
+func ColoredString(c Color) string {
 	switch c {
 	case White:
 		return color.WhiteString("█")
