@@ -114,7 +114,7 @@ func TestImportExport(t *testing.T) {
 				"..y..",
 			),
 			"",
-			"wrong color at [3:1]",
+			"wrong color at [3:1] = h",
 		},
 	}
 

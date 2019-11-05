@@ -28,16 +28,6 @@ type Canvas struct {
 	width  int
 }
 
-// Set sets point in given color
-func (c *Canvas) Set(p Point, cl Color) {
-	c.canvas[p.Y][p.X] = cl
-}
-
-// Get returns color of given point
-func (c *Canvas) Get(p Point) Color {
-	return c.canvas[p.Y][p.X]
-}
-
 // Import creates Canvas given an output of some canvas.Export() function.
 func Import(s string) (*Canvas, error) {
 	if len(s) == 0 {
@@ -63,12 +53,12 @@ func Import(s string) (*Canvas, error) {
 	}
 
 	c, _ := NewCanvas(width, len(rows))
-	for i, row := range rows {
-		for j := range row {
-			if cl, ok := parseColor(row[j]); ok {
-				c.Set(Point{X: j, Y: i}, cl)
+	for y, row := range rows {
+		for x, sym := range row {
+			if cl, ok := parseColor(sym); ok {
+				c.Dot(Point{X: x, Y: y}, cl)
 			} else {
-				return nil, fmt.Errorf("wrong color at [%v:%v]", j, i)
+				return nil, fmt.Errorf("wrong color at [%v:%v] = %c", x, y, sym)
 			}
 		}
 	}
@@ -96,13 +86,16 @@ func (c *Canvas) inBounds(p Point) bool {
 	return p.X >= 0 && p.X < c.width && p.Y >= 0 && p.Y < c.hight
 }
 
+// get returns color of given point
+func (c *Canvas) get(p Point) Color {
+	return c.canvas[p.Y][p.X]
+}
+
 // Dot paints the given point with the given color.
 func (c *Canvas) Dot(p Point, cl Color) {
-	if !c.inBounds(p) {
-		return
+	if c.inBounds(p) {
+		c.canvas[p.Y][p.X] = cl
 	}
-
-	c.Set(p, cl)
 }
 
 // Circle draws a circle with the given center and radius.
@@ -111,10 +104,10 @@ func (c *Canvas) Circle(center Point, r int, cl Color) {
 		return
 	}
 
-	for i, row := range c.canvas {
-		for j := range row {
-			if (center.X-j)*(center.X-j)+(center.Y-i)*(center.Y-i) <= r*r {
-				c.Set(Point{X: j, Y: i}, cl)
+	for y, row := range c.canvas {
+		for x := range row {
+			if (center.X-x)*(center.X-x)+(center.Y-y)*(center.Y-y) <= r*r {
+				c.Dot(Point{X: x, Y: y}, cl)
 			}
 		}
 	}
@@ -126,11 +119,9 @@ func (c *Canvas) Rect(left, right Point, cl Color) {
 		return
 	}
 
-	for i := left.Y; i <= right.Y; i++ {
-		for j := left.X; j <= right.X; j++ {
-			if c.inBounds(Point{X: j, Y: i}) {
-				c.Set(Point{X: j, Y: i}, cl)
-			}
+	for y := left.Y; y <= right.Y; y++ {
+		for x := left.X; x <= right.X; x++ {
+			c.Dot(Point{X: x, Y: y}, cl)
 		}
 	}
 }
@@ -141,15 +132,15 @@ func (c *Canvas) Fill(p Point, cl Color) {
 		return
 	}
 
-	origCol := c.Get(p)
+	origCol := c.get(p)
 	if origCol == cl {
 		return // the same color - nothing to color
 	}
 
 	var area []Point
 	addPoint := func(p Point) {
-		if c.inBounds(p) && c.Get(p) == origCol {
-			c.Set(p, cl)
+		if c.inBounds(p) && c.get(p) == origCol {
+			c.Dot(p, cl)
 			area = append(area, p)
 		}
 	}
@@ -246,7 +237,7 @@ func ColoredString(c Color) string {
 	return "?"
 }
 
-func parseColor(s byte) (Color, bool) {
+func parseColor(s rune) (Color, bool) {
 	switch s {
 	case '.':
 		return White, true
