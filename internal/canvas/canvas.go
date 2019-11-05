@@ -1,5 +1,13 @@
 package canvas
 
+import (
+	"fmt"
+	"strconv"
+	"strings"
+
+	"github.com/fatih/color"
+)
+
 // Canvas represents a 2D surface of a particular size.
 // Coordinates on this surface are zero-based.
 // Point (x:0, y:0) is in the top left corner.
@@ -15,42 +23,198 @@ package canvas
 // | (0,2) | (1,2) |
 // |---------------|
 type Canvas struct {
-	// TODO: implement.
+	canvas [][]Color
+	hight  int
+	width  int
+}
+
+// Set sets point in given color
+func (c *Canvas) Set(p Point, cl Color) {
+	c.canvas[p.Y][p.X] = cl
+}
+
+// Get returns color of given point
+func (c *Canvas) Get(p Point) Color {
+	return c.canvas[p.Y][p.X]
+}
+
+// Import creates Canvas given an output of some canvas.Export() function.
+func Import(s string) (*Canvas, error) {
+	if len(s) == 0 {
+		return nil, fmt.Errorf("canvas should have positive dimensions")
+	}
+
+	if s[len(s)-1] == '\n' {
+		s = s[:len(s)-1]
+	} else {
+		return nil, fmt.Errorf("should be \\n in the end of file")
+	}
+
+	rows := strings.Split(s, "\n")
+	if len(rows) == 0 || len(rows[0]) == 0 {
+		return nil, fmt.Errorf("canvas should have positive dimensions")
+	}
+
+	width := len(rows[0])
+	for i, row := range rows {
+		if len(row) != width {
+			return nil, fmt.Errorf("wrong length of row %v in canvas", i)
+		}
+	}
+
+	c, _ := NewCanvas(width, len(rows))
+	for i, row := range rows {
+		for j := range row {
+			if cl, ok := parseColor(row[j]); ok {
+				c.Set(Point{X: j, Y: i}, cl)
+			} else {
+				return nil, fmt.Errorf("wrong color at [%v:%v]", j, i)
+			}
+		}
+	}
+	return c, nil
 }
 
 // NewCanvas allocates a new canvas with the given hight and width.
-func NewCanvas(h, w int) *Canvas {
-	// TODO: implement.
-	return nil
+// hight and width must be bigger than zero
+func NewCanvas(w, h int) (*Canvas, bool) {
+	if w <= 0 || h <= 0 {
+		return nil, false
+	}
+
+	c := Canvas{hight: h, width: w}
+
+	c.canvas = make([][]Color, h)
+	pixels := make([]Color, h*w)
+	for i := range c.canvas {
+		c.canvas[i], pixels = pixels[:w], pixels[w:]
+	}
+	return &c, true
+}
+
+func (c *Canvas) inBounds(p Point) bool {
+	return p.X >= 0 && p.X < c.width && p.Y >= 0 && p.Y < c.hight
 }
 
 // Dot paints the given point with the given color.
 func (c *Canvas) Dot(p Point, cl Color) {
-	// TODO: implement.
+	if !c.inBounds(p) {
+		return
+	}
+
+	c.Set(p, cl)
 }
 
-// Circe draws a circle with the given center and radius.
-// FIXME: I'm not sure if radius should be float64. Maybe int will be enough?
-func (c *Canvas) Circe(center Point, r float64, cl Color) {
-	// TODO: implement.
+// Circle draws a circle with the given center and radius.
+func (c *Canvas) Circle(center Point, r int, cl Color) {
+	if r <= 0 {
+		return
+	}
+
+	for i, row := range c.canvas {
+		for j := range row {
+			if (center.X-j)*(center.X-j)+(center.Y-i)*(center.Y-i) <= r*r {
+				c.Set(Point{X: j, Y: i}, cl)
+			}
+		}
+	}
 }
 
 // Rect draws a rectangle given its top-left and bottom-right corners.
-func (c *Canvas) Rect(a, b Point, cl Color) {
-	// TODO: implement.
+func (c *Canvas) Rect(left, right Point, cl Color) {
+	if left.X > right.X || left.Y > right.Y {
+		return
+	}
+
+	for i := left.Y; i <= right.Y; i++ {
+		for j := left.X; j <= right.X; j++ {
+			if c.inBounds(Point{X: j, Y: i}) {
+				c.Set(Point{X: j, Y: i}, cl)
+			}
+		}
+	}
 }
 
-// Export retuns a string representation of the Canvas.
-// TODO: Advanced task - have a way to print colored output to terminal.
+// Fill fills the area with the given Point and color.
+func (c *Canvas) Fill(p Point, cl Color) {
+	if !c.inBounds(p) {
+		return
+	}
+
+	origCol := c.Get(p)
+	if origCol == cl {
+		return // the same color - nothing to color
+	}
+
+	var area []Point
+	addPoint := func(p Point) {
+		if c.inBounds(p) && c.Get(p) == origCol {
+			c.Set(p, cl)
+			area = append(area, p)
+		}
+	}
+
+	addPoint(p) //first point
+	for len(area) != 0 {
+		p = area[len(area)-1]
+		area = area[:len(area)-1]
+
+		addPoint(Point{p.X + 1, p.Y}) // right point
+		addPoint(Point{p.X - 1, p.Y}) // left point
+		addPoint(Point{p.X, p.Y - 1}) // up point
+		addPoint(Point{p.X, p.Y + 1}) // down point
+	}
+}
+
+// Visitor processes every canvas pixel
+type Visitor func(i, j int, cl Color)
+
+// Traverse calls function fn for all pixels of the canvas
+func (c *Canvas) Traverse(fn Visitor) {
+	for i, row := range c.canvas {
+		for j, p := range row {
+			fn(i, j, p)
+		}
+	}
+}
+
+// Export returns a string representation of the Canvas.
+// Use this function in connection with Import
 func (c *Canvas) Export() string {
-	// TODO: implement.
-	return ""
+	var sb strings.Builder
+
+	c.Traverse(func(i, j int, cl Color) {
+		sb.WriteString(cl.String())
+		if j == c.width-1 {
+			sb.WriteRune('\n')
+		}
+	})
+
+	return sb.String()
+}
+
+// ExportColor returns a string that can be printed colored.
+func (c *Canvas) ExportColor() string {
+	var sb strings.Builder
+
+	c.Traverse(func(i, j int, cl Color) {
+		sb.WriteString(cl.coloredString())
+		if j == c.width-1 {
+			sb.WriteRune('\n')
+		}
+	})
+
+	return sb.String()
 }
 
 // Point describes coordinates of one pixel in the Canvas.
 type Point struct {
 	X int
 	Y int
+}
+
+func (p *Point) String() string {
+	return "{" + strconv.Itoa(p.X) + ", " + strconv.Itoa(p.Y) + "}"
 }
 
 // Color of a pixel in the Canvas.
@@ -63,12 +227,15 @@ const (
 	Red
 	Green
 	Blue
+	Yellow
+
+	MaxColor
 )
 
 func (c Color) String() string {
 	switch c {
 	case White:
-		return " "
+		return "."
 	case Black:
 		return "x"
 	case Red:
@@ -77,6 +244,44 @@ func (c Color) String() string {
 		return "g"
 	case Blue:
 		return "b"
+	case Yellow:
+		return "y"
 	}
 	return "?"
+}
+
+func (c Color) coloredString() string {
+	switch c {
+	case White:
+		return color.WhiteString("█")
+	case Black:
+		return color.BlackString("█")
+	case Red:
+		return color.RedString("█")
+	case Green:
+		return color.GreenString("█")
+	case Blue:
+		return color.BlueString("█")
+	case Yellow:
+		return color.YellowString("█")
+	}
+	return "?"
+}
+
+func parseColor(s byte) (Color, bool) {
+	switch s {
+	case '.':
+		return White, true
+	case 'x':
+		return Black, true
+	case 'r':
+		return Red, true
+	case 'g':
+		return Green, true
+	case 'b':
+		return Blue, true
+	case 'y':
+		return Yellow, true
+	}
+	return White, false
 }
