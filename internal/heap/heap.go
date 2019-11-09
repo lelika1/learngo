@@ -8,7 +8,6 @@ import (
 // Heap is a representation of binary heap
 type Heap struct {
 	heap []int
-	size int
 }
 
 // NewHeap creates new heap with all elements in array.
@@ -16,11 +15,14 @@ type Heap struct {
 func NewHeap(arr []int) *Heap {
 	h := Heap{
 		heap: make([]int, len(arr)),
-		size: len(arr),
+	}
+
+	if len(arr) == 0 {
+		return &h
 	}
 
 	copy(h.heap, arr)
-	for i := h.size / 2; i >= 0; i-- {
+	for i := len(h.heap) / 2; i >= 0; i-- {
 		h.heapify(i)
 	}
 	return &h
@@ -29,23 +31,23 @@ func NewHeap(arr []int) *Heap {
 // Insert adds new element in the heap
 func (h *Heap) Insert(v int) {
 	h.heap = append(h.heap, v)
-	h.size++
 
-	for i := h.size - 1; i != 0; {
+	for i := len(h.heap) - 1; i != 0; {
 		parent := (i - 1) / 2
-		if h.heap[i] > h.heap[parent] {
-			h.heap[parent], h.heap[i] = h.heap[i], h.heap[parent]
-			i = parent
-			continue
+		if h.heap[i] <= h.heap[parent] {
+			return
 		}
-		break
+
+		// swap with parent
+		h.heap[parent], h.heap[i] = h.heap[i], h.heap[parent]
+		i = parent
 	}
 }
 
 // Max returns value of the max element in the heap
 // Returns false if the heap is empty
 func (h *Heap) Max() (int, bool) {
-	if h.size == 0 {
+	if len(h.heap) == 0 {
 		return 0, false
 	}
 	return h.heap[0], true
@@ -54,22 +56,22 @@ func (h *Heap) Max() (int, bool) {
 // ExtractMax returns value of the max element and removes it
 // Returns false if the heap is empty
 func (h *Heap) ExtractMax() (int, bool) {
-	if h.size == 0 {
+	if len(h.heap) == 0 {
 		return 0, false
 	}
 
 	max := h.heap[0]
-	h.heap[0] = h.heap[h.size-1]
-	h.heap = h.heap[:h.size-1]
-	h.size--
+	last := len(h.heap) - 1
+	h.heap[0] = h.heap[last]
+	h.heap = h.heap[:last]
 
 	h.heapify(0)
 	return max, true
 }
 
-// ConvertToSlice returns sorted slice with all elements of the heap.
-// The heap will be empty in the end
-func (h *Heap) ConvertToSlice() []int {
+// Drain iteratively extracts the max element from the heap and returns the resulting sequence of elements.
+// The given heap will be empty after this call.
+func Drain(h *Heap) []int {
 	var result []int
 	for v, ok := h.ExtractMax(); ok; v, ok = h.ExtractMax() {
 		result = append(result, v)
@@ -85,43 +87,46 @@ func (h *Heap) String() string {
 	var heapLayer, newLineInd int
 	for i, el := range h.heap {
 		sb.WriteString(strconv.Itoa(el))
-		if i == newLineInd && i != h.size-1 {
+		if i == len(h.heap)-1 {
+			break
+		}
+
+		if i == newLineInd {
 			sb.WriteRune('\n')
 			heapLayer++
 			newLineInd += 2 * heapLayer
 			continue
 		}
-		if i != h.size-1 {
-			sb.WriteRune(' ')
-		}
+
+		sb.WriteRune(' ')
 	}
 
 	sb.WriteString("]")
 	return sb.String()
 }
 
-// normalize vertex i
-func (h *Heap) heapify(i int) {
+// heapify reorders the heap to make the element with the given index satisfy heap invariant
+func (h *Heap) heapify(idx int) {
 	for {
-		// find biggest among element i and his children
-		biggest := i
-		left := 2*i + 1
-		right := 2 * (i + 1)
-		if left < h.size && h.heap[i] < h.heap[left] {
+		// find biggest among element with index idx and his children
+		biggest := idx
+		left := 2*idx + 1
+		right := 2 * (idx + 1)
+		if left < len(h.heap) && h.heap[idx] < h.heap[left] {
 			biggest = left
 		}
 
-		if right < h.size && h.heap[biggest] < h.heap[right] {
+		if right < len(h.heap) && h.heap[biggest] < h.heap[right] {
 			biggest = right
 		}
 
-		if biggest == i {
+		if biggest == idx {
 			break // there is nothing more to normalize
 		}
 
-		// change biggest element with element i
-		// and proceed the same procedure for new index
-		h.heap[biggest], h.heap[i] = h.heap[i], h.heap[biggest]
-		i = biggest
+		// swap biggest element with element idx
+		// and perfome the same procedure for new index
+		h.heap[biggest], h.heap[idx] = h.heap[idx], h.heap[biggest]
+		idx = biggest
 	}
 }
