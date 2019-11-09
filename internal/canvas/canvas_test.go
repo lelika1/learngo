@@ -62,16 +62,16 @@ func TestImportExport(t *testing.T) {
 	}{
 		{
 			pict(
-				"..y..",
+				"..m..",
 				".yry.",
-				"yyxyy",
+				"cyxyy",
 				".yyb.",
 				"..g..",
 			),
 			pict(
-				"..y..",
+				"..m..",
 				".yry.",
-				"yyxyy",
+				"cyxyy",
 				".yyb.",
 				"..g..",
 			),

@@ -195,6 +195,8 @@ const (
 	Green
 	Blue
 	Yellow
+	Magenta
+	Cyan
 
 	MaxColor
 )
@@ -214,6 +216,10 @@ func (c Color) String() string {
 		return "b"
 	case Yellow:
 		return "y"
+	case Magenta:
+		return "m"
+	case Cyan:
+		return "c"
 	}
 	return "?"
 }
@@ -233,6 +239,10 @@ func ColoredString(c Color) string {
 		return color.BlueString("█")
 	case Yellow:
 		return color.YellowString("█")
+	case Magenta:
+		return color.MagentaString("█")
+	case Cyan:
+		return color.CyanString("█")
 	}
 	return "?"
 }
@@ -251,6 +261,10 @@ func parseColor(s rune) (Color, bool) {
 		return Blue, true
 	case 'y':
 		return Yellow, true
+	case 'm':
+		return Magenta, true
+	case 'c':
+		return Cyan, true
 	}
 	return White, false
 }
