@@ -50,8 +50,9 @@ func TestNewHeap(t *testing.T) {
 		h := heap.NewHeap(ts)
 		got := heap.Drain(h)
 
-		want := ts
-		sort.Sort(sort.Reverse(sort.IntSlice(want)))
+		want := make([]int, len(ts))
+		copy(want, ts)
+		sort.Slice(want, func(i, j int) bool { return want[i] > want[j] })
 
 		if !equal(got, want) {
 			t.Errorf("Heap(%v) = %v, want %v", ts, got, want)
