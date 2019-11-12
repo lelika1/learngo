@@ -84,7 +84,7 @@ func (h *Heap) String() string {
 	var sb strings.Builder
 	sb.WriteString("[")
 
-	var heapLayer, newLineIdx int
+	var nodesInLayer, newLineIdx int = 1, 0
 	for i, el := range h.heap {
 		sb.WriteString(strconv.Itoa(el))
 		if i == len(h.heap)-1 {
@@ -93,8 +93,8 @@ func (h *Heap) String() string {
 
 		if i == newLineIdx {
 			sb.WriteRune('\n')
-			heapLayer++
-			newLineIdx += 2 * heapLayer
+			nodesInLayer *= 2
+			newLineIdx += nodesInLayer
 			continue
 		}
 
