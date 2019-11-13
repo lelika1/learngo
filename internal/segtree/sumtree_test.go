@@ -1,33 +1,30 @@
 package segtree_test
 
 import (
-	"strconv"
 	"strings"
 	"testing"
 
 	"github.com/lelika1/learngo/internal/segtree"
 )
 
-func pictTree(row string, rows ...string) string {
+func tree(row string, rows ...string) string {
 	var sb strings.Builder
-	sb.WriteRune('[')
 	sb.WriteString(row)
 	for _, r := range rows {
 		sb.WriteRune('\n')
 		sb.WriteString(r)
 	}
-	sb.WriteRune(']')
 	return sb.String()
 }
 
 func TestNewSumtree(t *testing.T) {
 	tests := []struct {
-		arr  []int
-		want string
+		input []int
+		want  string
 	}{
 		{
 			[]int{2, 3, -2, 4, 5, 6, 8, 1},
-			pictTree(
+			tree(
 				"27",
 				"7 20",
 				"5 2 11 9",
@@ -36,7 +33,7 @@ func TestNewSumtree(t *testing.T) {
 		},
 		{
 			[]int{2, 3, -2, 4, 5, 6, 8},
-			pictTree(
+			tree(
 				"26",
 				"7 19",
 				"5 2 11 8",
@@ -45,7 +42,7 @@ func TestNewSumtree(t *testing.T) {
 		},
 		{
 			[]int{2, 3, -2, 4, 5, 6},
-			pictTree(
+			tree(
 				"18",
 				"7 11",
 				"5 2 11 0",
@@ -54,7 +51,7 @@ func TestNewSumtree(t *testing.T) {
 		},
 		{
 			[]int{2, 3, -2, 4, 5},
-			pictTree(
+			tree(
 				"12",
 				"7 5",
 				"5 2 5 0",
@@ -63,7 +60,7 @@ func TestNewSumtree(t *testing.T) {
 		},
 		{
 			[]int{-2, 2, 3, 10},
-			pictTree(
+			tree(
 				"13",
 				"0 13",
 				"-2 2 3 10",
@@ -71,7 +68,7 @@ func TestNewSumtree(t *testing.T) {
 		},
 		{
 			[]int{3, 4, 2},
-			pictTree(
+			tree(
 				"9",
 				"7 2",
 				"3 4 2",
@@ -79,122 +76,146 @@ func TestNewSumtree(t *testing.T) {
 		},
 		{
 			[]int{1, 2},
-			pictTree(
+			tree(
 				"3",
 				"1 2",
 			),
 		},
 		{
 			[]int{1},
-			pictTree(
+			tree(
 				"1",
 			),
 		},
 		{
 			nil,
-			pictTree(""),
+			tree(""),
+		},
+		{
+			[]int{},
+			tree(""),
 		},
 	}
 
 	for _, ts := range tests {
-		tree := segtree.NewSumTree(ts.arr)
+		tree := segtree.NewSumTree(ts.input)
 		got := tree.String()
 
 		if got != ts.want {
-			t.Errorf("NewSumtree(%v) = %q, want %q", ts.arr, got, ts.want)
+			t.Errorf("NewSumtree(%v) = %q, want %q", ts.input, got, ts.want)
 		}
 	}
 }
 
 func TestSum(t *testing.T) {
 	tests := []struct {
-		arr  []int
-		i, j int
-		want string // sum or '?' if indexes are wrong
+		input []int
+		i, j  int
+		want  int
+		fail  bool
 	}{
 		{
-			[]int{2, 3, -2, 4, 5, 6, 8, 1},
-			0, 7, "27",
+			input: []int{2, 3, -2, 4, 5, 6, 8, 1},
+			i:     0, j: 7,
+			want: 27,
 		},
 		{
-			[]int{2, 3, -2, 4, 5, 6, 8, 1},
-			0, 5, "18",
+			input: []int{2, 3, -2, 4, 5, 6, 8, 1},
+			i:     0, j: 5,
+			want: 18,
 		},
 		{
-			[]int{2, 3, -2, 4, 5, 6, 8, 1},
-			0, 4, "12",
+			input: []int{2, 3, -2, 4, 5, 6, 8, 1},
+			i:     0, j: 4,
+			want: 12,
 		},
 		{
-			[]int{2, 3, -2, 4, 5, 6, 8, 1},
-			0, 1, "5",
+			input: []int{2, 3, -2, 4, 5, 6, 8, 1},
+			i:     0, j: 1,
+			want: 5,
 		},
 		{
-			[]int{2, 3, -2, 4, 5, 6, 8, 1},
-			0, 3, "7",
+			input: []int{2, 3, -2, 4, 5, 6, 8, 1},
+			i:     0, j: 3,
+			want: 7,
 		},
 		{
-			[]int{2, 3, -2, 4, 5, 6, 8, 1},
-			4, 5, "11",
+			input: []int{2, 3, -2, 4, 5, 6, 8, 1},
+			i:     4, j: 5,
+			want: 11,
 		},
 		{
-			[]int{2, 3, -2, 4, 5, 6, 8, 1},
-			2, 6, "21",
+			input: []int{2, 3, -2, 4, 5, 6, 8, 1},
+			i:     2, j: 6,
+			want: 21,
 		},
 		{
-			[]int{2, 3, -2, 4, 5, 6, 8, 1},
-			3, 4, "9",
+			input: []int{2, 3, -2, 4, 5, 6, 8, 1},
+			i:     3, j: 4,
+			want: 9,
 		},
 		{
-			[]int{2, 3},
-			0, 0, "2",
+			input: []int{2, 3},
+			i:     0, j: 0,
+			want: 2,
 		},
 		{
-			[]int{2},
-			0, 0, "2",
+			input: []int{2},
+			i:     0, j: 0,
+			want: 2,
 		},
 		{
-			[]int{2, 3},
-			-1, 1, "?",
+			input: []int{2, 3},
+			i:     -1, j: 1,
+			fail: true,
 		},
 		{
-			[]int{2, 3},
-			0, 2, "?",
+			input: []int{2, 3},
+			i:     0, j: 2,
+			fail: true,
 		},
 		{
-			[]int{2, 3},
-			1, 0, "?",
+			input: []int{2, 3},
+			i:     1, j: 0,
+			fail: true,
 		},
 		{
-			nil, 0, 0, "?",
+			input: nil,
+			i:     0, j: 0,
+			fail: true,
+		},
+		{
+			input: []int{},
+			i:     0, j: 0,
+			fail: true,
 		},
 	}
 
 	for _, ts := range tests {
-		tree := segtree.NewSumTree(ts.arr)
-		sum, ok := tree.Sum(ts.i, ts.j)
-		if !ok {
-			if ts.want != "?" {
-				t.Errorf("Sum(%v; [%v, %v]) = %v, want %v", ts.arr, ts.i, ts.j, sum, ts.want)
-			}
-			continue
+		tree := segtree.NewSumTree(ts.input)
+		got, ok := tree.Sum(ts.i, ts.j)
+
+		if ok == ts.fail {
+			// Sum failed, but test doesn't expect this (or otherwise)
+			t.Errorf("Sum(%v; [%v, %v]) = %v, want %v", ts.input, ts.i, ts.j, got, ts.want)
 		}
 
-		if got := strconv.Itoa(sum); got != ts.want {
-			t.Errorf("Sum(%v; [%v, %v]) = %v, want %v", ts.arr, ts.i, ts.j, sum, ts.want)
+		if got != ts.want {
+			t.Errorf("Sum(%v; [%v, %v]) = %v, want %v", ts.input, ts.i, ts.j, got, ts.want)
 		}
 	}
 }
 
-func TestUpdate(t *testing.T) {
+func TestSet(t *testing.T) {
 	tests := []struct {
-		arr      []int
+		input    []int
 		idx, val int
 		want     string // SumTree.String() or '?' if idx is wrong
 	}{
 		{
-			[]int{2, 3, -2, 4, 5},
-			0, -2,
-			pictTree(
+			input: []int{2, 3, -2, 4, 5},
+			idx:   0, val: -2,
+			want: tree(
 				"8",
 				"3 5",
 				"1 2 5 0",
@@ -202,9 +223,9 @@ func TestUpdate(t *testing.T) {
 			),
 		},
 		{
-			[]int{2, 3, -2, 4, 5},
-			2, 0,
-			pictTree(
+			input: []int{2, 3, -2, 4, 5},
+			idx:   2, val: 0,
+			want: tree(
 				"14",
 				"9 5",
 				"5 4 5 0",
@@ -212,9 +233,9 @@ func TestUpdate(t *testing.T) {
 			),
 		},
 		{
-			[]int{2, 3, -2, 4, 5},
-			4, 1,
-			pictTree(
+			input: []int{2, 3, -2, 4, 5},
+			idx:   4, val: 1,
+			want: tree(
 				"8",
 				"7 1",
 				"5 2 1 0",
@@ -222,60 +243,65 @@ func TestUpdate(t *testing.T) {
 			),
 		},
 		{
-			[]int{-2, 2, 3, 10},
-			3, -3,
-			pictTree(
+			input: []int{-2, 2, 3, 10},
+			idx:   3, val: -3,
+			want: tree(
 				"0",
 				"0 0",
 				"-2 2 3 -3",
 			),
 		},
 		{
-			[]int{3, 4, 2},
-			1, 4,
-			pictTree(
+			input: []int{3, 4, 2},
+			idx:   1, val: 4,
+			want: tree(
 				"9",
 				"7 2",
 				"3 4 2",
 			),
 		},
 		{
-			[]int{1},
-			0, 3,
-			pictTree(
+			input: []int{1},
+			idx:   0, val: 3,
+			want: tree(
 				"3",
 			),
 		},
 		{
-			[]int{2, 3, -2, 4, 5},
-			5, 5,
-			"?",
+			input: []int{2, 3, -2, 4, 5},
+			idx:   5, val: 5,
+			want: "?",
 		},
 		{
-			[]int{2, 3, -2, 4, 5},
-			-1, 1,
-			"?",
+			input: []int{2, 3, -2, 4, 5},
+			idx:   -1, val: 1,
+			want: "?",
 		},
 		{
-			nil,
-			0, 2,
-			"?",
+			input: nil,
+			idx:   0, val: 0,
+			want: "?",
+		},
+		{
+			input: []int{},
+			idx:   0, val: 0,
+			want: "?",
 		},
 	}
 
 	for _, ts := range tests {
-		tree := segtree.NewSumTree(ts.arr)
-		ok := tree.Update(ts.idx, ts.val)
+		tree := segtree.NewSumTree(ts.input)
+		ok := tree.Set(ts.idx, ts.val)
 		if !ok {
 			if ts.want != "?" {
-				t.Errorf("Update returns false. Want: want %q", ts.want)
+				t.Errorf("Set returns false. Want: want %q", ts.want)
 			}
 			continue
 		}
 
 		if got := tree.String(); got != ts.want {
-			t.Errorf("Update(arr=%v, i=%v, v=%v) = %q, want %q",
-				ts.arr, ts.idx, ts.val, got, ts.want)
+			t.Errorf("Set(arr=%v, i=%v, v=%v) = %q, want %q",
+				ts.input, ts.idx, ts.val, got, ts.want)
 		}
 	}
 }
