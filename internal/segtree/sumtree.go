@@ -19,7 +19,7 @@ func NewSumTree(arr []int) *SumTree {
 		return &SumTree{}
 	}
 
-	// find nearest degree of 2 bigger than len(arr)
+	// find the nearest degree of 2 bigger than len(arr)
 	size := 1 << (bits.Len(uint(len(arr)) - 1))
 	if size < len(arr) {
 		size *= 2
@@ -105,25 +105,25 @@ type segRange struct {
 }
 
 // recursiveSum checks whether the segment is in one of the children, or intersects with both.
-// sumSeg - segment where sum should be calculated
-// treeSeg - ranges of the node
+// sumSeg - segment where sum should be calculated.
+// treeSeg - ranges of the node.
 func (t *SumTree) recursiveSum(node int, sumSeg, treeSeg segRange) int {
 	if sumSeg.l == treeSeg.l && sumSeg.r == treeSeg.r {
 		return t.tree[node]
 	}
 
-	leftNode := 2*node + 1
-	rightNode := 2*node + 2
+	left := 2*node + 1
+	right := 2*node + 2
 
 	mid := (treeSeg.l + treeSeg.r) / 2
 	if sumSeg.l <= mid && sumSeg.r <= mid {
-		return t.recursiveSum(leftNode, sumSeg, segRange{treeSeg.l, mid})
+		return t.recursiveSum(left, sumSeg, segRange{treeSeg.l, mid})
 	}
 
 	if sumSeg.l > mid && sumSeg.r > mid {
-		return t.recursiveSum(rightNode, sumSeg, segRange{mid + 1, treeSeg.r})
+		return t.recursiveSum(right, sumSeg, segRange{mid + 1, treeSeg.r})
 	}
-
-	return t.recursiveSum(leftNode, segRange{sumSeg.l, mid}, segRange{treeSeg.l, mid}) +
-		+t.recursiveSum(rightNode, segRange{mid + 1, sumSeg.r}, segRange{mid + 1, treeSeg.r})
+	ret := t.recursiveSum(left, segRange{sumSeg.l, mid}, segRange{treeSeg.l, mid})
+	ret += t.recursiveSum(right, segRange{mid + 1, sumSeg.r}, segRange{mid + 1, treeSeg.r})
+	return ret
 }
