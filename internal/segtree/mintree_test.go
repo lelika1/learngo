@@ -1,23 +1,12 @@
 package segtree_test
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/lelika1/learngo/internal/segtree"
 )
 
-func tree(row string, rows ...string) string {
-	var sb strings.Builder
-	sb.WriteString(row)
-	for _, r := range rows {
-		sb.WriteRune('\n')
-		sb.WriteString(r)
-	}
-	return sb.String()
-}
-
-func TestNewSumtree(t *testing.T) {
+func TestNewMinTree(t *testing.T) {
 	tests := []struct {
 		input []int
 		want  string
@@ -25,59 +14,68 @@ func TestNewSumtree(t *testing.T) {
 		{
 			[]int{2, 3, -2, 4, 5, 6, 8, 1},
 			tree(
-				"27",
-				"7 20",
-				"5 2 11 9",
+				"-2",
+				"-2 1",
+				"2 -2 5 1",
 				"2 3 -2 4 5 6 8 1",
 			),
 		},
 		{
 			[]int{2, 3, -2, 4, 5, 6, 8},
 			tree(
-				"26",
-				"7 19",
-				"5 2 11 8",
+				"-2",
+				"-2 5",
+				"2 -2 5 8",
 				"2 3 -2 4 5 6 8",
 			),
 		},
 		{
 			[]int{2, 3, -2, 4, 5, 6},
 			tree(
-				"18",
-				"7 11",
-				"5 2 11 -",
+				"-2",
+				"-2 5",
+				"2 -2 5 -",
 				"2 3 -2 4 5 6",
+			),
+		},
+		{
+			[]int{2, 3, -2, 4, -5, 6},
+			tree(
+				"-5",
+				"-2 -5",
+				"2 -2 -5 -",
+				"2 3 -2 4 -5 6",
 			),
 		},
 		{
 			[]int{2, 3, -2, 4, 5},
 			tree(
-				"12",
-				"7 5",
-				"5 2 5 -",
+				"-2",
+				"-2 5",
+				"2 -2 5 -",
 				"2 3 -2 4 5",
 			),
 		},
 		{
 			[]int{-2, 2, 3, 10},
 			tree(
-				"13",
-				"0 13",
+				"-2",
+				"-2 3",
 				"-2 2 3 10",
 			),
 		},
 		{
 			[]int{3, 4, 2},
 			tree(
-				"9",
-				"7 2",
+				"2",
+				"3 2",
 				"3 4 2",
 			),
 		},
 		{
 			[]int{1, 2},
 			tree(
-				"3",
+				"1",
 				"1 2",
 			),
 		},
@@ -98,16 +96,16 @@ func TestNewSumtree(t *testing.T) {
 	}
 
 	for _, ts := range tests {
-		tree := segtree.NewSumTree(ts.input)
+		tree := segtree.NewMinTree(ts.input)
 		got := tree.String()
 
 		if got != ts.want {
-			t.Errorf("NewSumtree(%v) = %q, want %q", ts.input, got, ts.want)
+			t.Errorf("NewMinTree(%v) = %q, want %q", ts.input, got, ts.want)
 		}
 	}
 }
 
-func TestSum(t *testing.T) {
+func TestMin(t *testing.T) {
 	tests := []struct {
 		input []int
 		i, j  int
@@ -117,42 +115,57 @@ func TestSum(t *testing.T) {
 		{
 			input: []int{2, 3, -2, 4, 5, 6, 8, 1},
 			i:     0, j: 7,
-			want: 27,
+			want: -2,
 		},
 		{
 			input: []int{2, 3, -2, 4, 5, 6, 8, 1},
 			i:     0, j: 5,
-			want: 18,
+			want: -2,
 		},
 		{
 			input: []int{2, 3, -2, 4, 5, 6, 8, 1},
 			i:     0, j: 4,
-			want: 12,
+			want: -2,
 		},
 		{
 			input: []int{2, 3, -2, 4, 5, 6, 8, 1},
 			i:     0, j: 1,
-			want: 5,
+			want: 2,
 		},
 		{
 			input: []int{2, 3, -2, 4, 5, 6, 8, 1},
 			i:     0, j: 3,
-			want: 7,
+			want: -2,
 		},
 		{
 			input: []int{2, 3, -2, 4, 5, 6, 8, 1},
 			i:     4, j: 5,
-			want: 11,
+			want: 5,
 		},
 		{
 			input: []int{2, 3, -2, 4, 5, 6, 8, 1},
 			i:     2, j: 6,
-			want: 21,
+			want: -2,
 		},
 		{
 			input: []int{2, 3, -2, 4, 5, 6, 8, 1},
 			i:     3, j: 4,
-			want: 9,
+			want: 4,
+		},
+		{
+			input: []int{2, 3, -2, 4, 5, 6, 8},
+			i:     6, j: 6,
+			want: 8,
+		},
+		{
+			input: []int{2, 3, -2, 4, 5, 6},
+			i:     5, j: 5,
+			want: 6,
+		},
+		{
+			input: []int{2, 3, 2, 4, 5, 6},
+			i:     0, j: 5,
+			want: 2,
 		},
 		{
 			input: []int{2, 3},
@@ -192,33 +205,43 @@ func TestSum(t *testing.T) {
 	}
 
 	for _, ts := range tests {
-		tree := segtree.NewSumTree(ts.input)
-		got, ok := tree.Sum(ts.i, ts.j)
+		tree := segtree.NewMinTree(ts.input)
+		got, ok := tree.Min(ts.i, ts.j)
 
 		if ok == ts.fail {
-			// Sum failed, but test doesn't expect this (or otherwise)
-			t.Errorf("Sum(%v; [%v, %v]) = %v, want %v", ts.input, ts.i, ts.j, got, ts.want)
+			// Min failed, but test doesn't expect this (or otherwise)
+			t.Errorf("Min(%v; [%v, %v]) = %v, want %v", ts.input, ts.i, ts.j, got, ts.want)
 		}
 
 		if got != ts.want {
-			t.Errorf("Sum(%v; [%v, %v]) = %v, want %v", ts.input, ts.i, ts.j, got, ts.want)
+			t.Errorf("Min(%v; [%v, %v]) = %v, want %v", ts.input, ts.i, ts.j, got, ts.want)
 		}
 	}
 }
 
-func TestSet(t *testing.T) {
+func TestMinTreeSet(t *testing.T) {
 	tests := []struct {
 		input    []int
 		idx, val int
-		want     string // SumTree.String() or '?' if idx is wrong
+		want     string // MinTree.String() or '?' if idx is wrong
 	}{
+		{
+			input: []int{2, 3, -2, 4, -5, 6},
+			idx:   4, val: 5,
+			want: tree(
+				"-2",
+				"-2 5",
+				"2 -2 5 -",
+				"2 3 -2 4 5 6",
+			),
+		},
 		{
 			input: []int{2, 3, -2, 4, 5},
 			idx:   0, val: -2,
 			want: tree(
-				"8",
-				"3 5",
-				"1 2 5 -",
+				"-2",
+				"-2 5",
+				"-2 -2 5 -",
 				"-2 3 -2 4 5",
 			),
 		},
@@ -226,9 +249,9 @@ func TestSet(t *testing.T) {
 			input: []int{2, 3, -2, 4, 5},
 			idx:   2, val: 0,
 			want: tree(
-				"14",
-				"9 5",
-				"5 4 5 -",
+				"0",
+				"0 5",
+				"2 0 5 -",
 				"2 3 0 4 5",
 			),
 		},
@@ -236,9 +259,9 @@ func TestSet(t *testing.T) {
 			input: []int{2, 3, -2, 4, 5},
 			idx:   4, val: 1,
 			want: tree(
-				"8",
-				"7 1",
-				"5 2 1 -",
+				"-2",
+				"-2 1",
+				"2 -2 1 -",
 				"2 3 -2 4 1",
 			),
 		},
@@ -246,8 +269,8 @@ func TestSet(t *testing.T) {
 			input: []int{-2, 2, 3, 10},
 			idx:   3, val: -3,
 			want: tree(
-				"0",
-				"0 0",
+				"-3",
+				"-2 -3",
 				"-2 2 3 -3",
 			),
 		},
@@ -255,9 +278,18 @@ func TestSet(t *testing.T) {
 			input: []int{3, 4, 2},
 			idx:   1, val: 4,
 			want: tree(
-				"9",
-				"7 2",
+				"2",
+				"3 2",
 				"3 4 2",
+			),
+		},
+		{
+			input: []int{3, 4, 2},
+			idx:   2, val: 4,
+			want: tree(
+				"3",
+				"3 4",
+				"3 4 4",
 			),
 		},
 		{
@@ -290,7 +322,7 @@ func TestSet(t *testing.T) {
 	}
 
 	for _, ts := range tests {
-		tree := segtree.NewSumTree(ts.input)
+		tree := segtree.NewMinTree(ts.input)
 		ok := tree.Set(ts.idx, ts.val)
 		if !ok {
 			if ts.want != "?" {
