@@ -6,22 +6,24 @@ import (
 	"strings"
 )
 
-// TreeFunc should be an associative function.
-// That means: f(f(x, y), z) = f(x, f(y, z)).
-type TreeFunc func(int, int) int
+// TreeFn is an associative operation we would like to maintain results for in the segment tree.
+// Associative means: f(f(x, y), z) = f(x, f(y, z)).
+// An example for the sum calculation: func(i, j int) int { return i + j }.
+type TreeFn func(val1 int, val2 int) (result int)
 
 // SegmentTree can be created and used for any associative function.
 type SegmentTree struct {
-	tree   []int
-	size   int         // size of original array
-	levels []levelDesc // description for every tree's layer (begin, end, etc)
-	f      TreeFunc    // function that will be calculated for segments
+	tree    []int
+	size    int         // size of original array
+	levels  []levelDesc // description for every tree's layer (begin, end, etc)
+	lastCap int         // potential maximum size of the last tree layer
+	fn      TreeFn      // function that will be calculated for segments
 }
 
 // NewSegmentTree creates SegmentTree for the given array and the function.
-func NewSegmentTree(arr []int, f TreeFunc) *SegmentTree {
+func NewSegmentTree(arr []int, fn TreeFn) *SegmentTree {
 	if len(arr) == 0 {
-		return &SegmentTree{}
+		return &SegmentTree{fn: fn}
 	}
 
 	// find the nearest degree of 2 bigger than len(arr)
@@ -32,17 +34,20 @@ func NewSegmentTree(arr []int, f TreeFunc) *SegmentTree {
 	levels[len(levels)-1] = levelDesc{
 		begin: size - 1,
 		end:   (size - 1) + len(arr) - 1,
-		cap:   size,
-		free:  size - len(arr),
-	}
-	for i := len(levels) - 2; i >= 0; i-- {
-		levels[i].cap = levels[i+1].cap / 2
-		levels[i].begin = levels[i+1].begin - levels[i].cap
-		levels[i].free = levels[i+1].free / 2
-		levels[i].end = levels[i+1].begin - levels[i].free - 1
 	}
 
-	copy(nodes[levels[len(levels)-1].begin:], arr) // put original array in the leafs of the SumTree
+	free := size - len(arr)
+	for i := len(levels) - 2; i >= 0; i-- {
+		next := levels[i+1]
+		free /= 2
+
+		levels[i] = levelDesc{
+			begin: next.begin - (1 << i),
+			end:   next.begin - free - 1,
+		}
+	}
+
+	copy(nodes[size-1:], arr) // put original array in the leafs of the SegmentTree
 	for l := len(levels) - 2; l >= 0; l-- {
 		for i := levels[l].begin; i <= levels[l].end; i++ {
 			left := 2*i + 1
@@ -50,16 +55,17 @@ func NewSegmentTree(arr []int, f TreeFunc) *SegmentTree {
 			if right > levels[l+1].end {
 				nodes[i] = nodes[left]
 			} else {
-				nodes[i] = f(nodes[left], nodes[right])
+				nodes[i] = fn(nodes[left], nodes[right])
 			}
 		}
 	}
 
 	return &SegmentTree{
-		tree:   nodes,
-		size:   len(arr),
-		levels: levels,
-		f:      f,
+		tree:    nodes,
+		size:    len(arr),
+		levels:  levels,
+		lastCap: size,
+		fn:      fn,
 	}
 }
 
@@ -79,7 +85,7 @@ func (t *SegmentTree) String() string {
 		}
 
 		if l != len(t.levels)-1 {
-			for i := 0; i < level.free; i++ {
+			for i := level.end + 1; i < t.levels[l+1].begin; i++ {
 				sb.WriteString(" -")
 			}
 			sb.WriteRune('\n')
@@ -89,15 +95,14 @@ func (t *SegmentTree) String() string {
 	return sb.String()
 }
 
-// F returns the result of function 'f' on the given range of indices.
+// Aggregate returns the result of TreeFn function on the given range of indices.
 // Returns false if indices are incorrect.
-func (t *SegmentTree) F(i, j int) (int, bool) {
+func (t *SegmentTree) Aggregate(i, j int) (int, bool) {
 	if i < 0 || i >= t.size || j < 0 || j >= t.size || i > j {
 		return 0, false
 	}
 
-	lastIdx := t.levels[len(t.levels)-1].cap - 1
-	return t.recursiveF(0, segmentRange{i, j}, segmentRange{0, lastIdx}), true
+	return t.aggregate(0, segmentRange{i, j}, segmentRange{0, t.lastCap - 1}), true
 }
 
 // Set changes value of element idx and refreshes all tree.
@@ -107,13 +112,12 @@ func (t *SegmentTree) Set(idx, val int) bool {
 		return false // wrong index
 	}
 
-	if t.tree[t.levels[len(t.levels)-1].begin+idx] == val {
+	cur := t.levels[len(t.levels)-1].begin + idx
+	if t.tree[cur] == val {
 		return true // the same value, nothing to do
 	}
 
-	cur := t.levels[len(t.levels)-1].begin + idx
 	t.tree[cur] = val
-
 	for l := len(t.levels) - 2; l >= 0; l-- {
 		cur = (cur - 1) / 2
 		left := 2*cur + 1
@@ -122,7 +126,7 @@ func (t *SegmentTree) Set(idx, val int) bool {
 		if right > t.levels[l+1].end {
 			t.tree[cur] = t.tree[left]
 		} else {
-			t.tree[cur] = t.f(t.tree[left], t.tree[right])
+			t.tree[cur] = t.fn(t.tree[left], t.tree[right])
 		}
 	}
 	return true
@@ -133,10 +137,10 @@ type segmentRange struct {
 	r int
 }
 
-// recursiveF checks whether the segment is in one of the children, or intersects with both.
+// aggregate checks whether the segment is in one of the children, or intersects with both.
 // fSeg - segment where function 'f' should be calculated.
 // treeSeg - ranges of the node.
-func (t *SegmentTree) recursiveF(node int, fSeg, treeSeg segmentRange) int {
+func (t *SegmentTree) aggregate(node int, fSeg, treeSeg segmentRange) int {
 	if fSeg.l == treeSeg.l && fSeg.r == treeSeg.r {
 		return t.tree[node]
 	}
@@ -146,21 +150,19 @@ func (t *SegmentTree) recursiveF(node int, fSeg, treeSeg segmentRange) int {
 	mid := (treeSeg.l + treeSeg.r) / 2
 
 	if fSeg.l <= mid && fSeg.r <= mid {
-		return t.recursiveF(left, fSeg, segmentRange{treeSeg.l, mid})
+		return t.aggregate(left, fSeg, segmentRange{treeSeg.l, mid})
 	}
 
 	if fSeg.l > mid && fSeg.r > mid {
-		return t.recursiveF(right, fSeg, segmentRange{mid + 1, treeSeg.r})
+		return t.aggregate(right, fSeg, segmentRange{mid + 1, treeSeg.r})
 	}
 
-	return t.f(t.recursiveF(left, segmentRange{fSeg.l, mid}, segmentRange{treeSeg.l, mid}),
-		t.recursiveF(right, segmentRange{mid + 1, fSeg.r}, segmentRange{mid + 1, treeSeg.r}))
+	return t.fn(t.aggregate(left, segmentRange{fSeg.l, mid}, segmentRange{treeSeg.l, mid}),
+		t.aggregate(right, segmentRange{mid + 1, fSeg.r}, segmentRange{mid + 1, treeSeg.r}))
 }
 
 // levelDesc is description for every segment tree's layer.
 type levelDesc struct {
 	begin int // index of the first element of this layer in the full tree
 	end   int // index of the last actual element of this layer in the full tree
-	free  int // unused element in this layer
-	cap   int // amount of potential elements on the current layer in the full tree
 }

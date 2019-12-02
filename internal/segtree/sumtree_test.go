@@ -294,7 +294,8 @@ func TestSet(t *testing.T) {
 		ok := tree.Set(ts.idx, ts.val)
 		if !ok {
 			if ts.want != "?" {
-				t.Errorf("Set returns false. Want: want %q", ts.want)
+				t.Errorf("Set(arr=%v, i=%v, v=%v) = %v, want %q",
+					ts.input, ts.idx, ts.val, ok, ts.want)
 			}
 			continue
 		}
