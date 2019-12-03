@@ -9,7 +9,7 @@ import (
 // TreeFn is an associative operation we would like to maintain results for in the segment tree.
 // Associative means: f(f(x, y), z) = f(x, f(y, z)).
 // An example for the sum calculation: func(i, j int) int { return i + j }.
-type TreeFn func(val1 int, val2 int) (result int)
+type TreeFn func(val1, val2 int) (result int)
 
 // SegmentTree can be created and used for any associative function.
 type SegmentTree struct {
@@ -70,7 +70,7 @@ func NewSegmentTree(arr []int, fn TreeFn) *SegmentTree {
 }
 
 // String prints the segment tree, layer by layer, one layer per line.
-// First line - is the result of functions 'f' on the whole array.
+// First line - is the result of functions 'fn' on the whole array.
 // Last line - elements of the original array.
 // If the current node does not correspond to any element of the original array, then it will be '-'.
 func (t *SegmentTree) String() string {
@@ -138,7 +138,7 @@ type segmentRange struct {
 }
 
 // aggregate checks whether the segment is in one of the children, or intersects with both.
-// fSeg - segment where function 'f' should be calculated.
+// fSeg - segment where function 'fn' should be calculated.
 // treeSeg - ranges of the node.
 func (t *SegmentTree) aggregate(node int, fSeg, treeSeg segmentRange) int {
 	if fSeg.l == treeSeg.l && fSeg.r == treeSeg.r {

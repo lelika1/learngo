@@ -19,5 +19,5 @@ func NewMinTree(arr []int) *MinTree {
 // Min returns the min element in the given range of indices.
 // Returns false if indices are incorrect.
 func (t *MinTree) Min(i, j int) (int, bool) {
-	return t.SegmentTree.Aggregate(i, j)
+	return t.Aggregate(i, j)
 }

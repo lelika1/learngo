@@ -23,7 +23,7 @@ func NewZeroCountTree(arr []int) *ZeroCountTree {
 // ZeroCount returns the amount of 0-elements in the given range of indices.
 // Returns false if indices are incorrect.
 func (t *ZeroCountTree) ZeroCount(i, j int) (int, bool) {
-	return t.SegmentTree.Aggregate(i, j)
+	return t.Aggregate(i, j)
 }
 
 // Set changes value of element idx and refreshes all tree.

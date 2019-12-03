@@ -14,5 +14,5 @@ func NewSumTree(arr []int) *SumTree {
 // Sum returns the sum of elements in the given range of indices.
 // Returns false if indices are incorrect.
 func (t *SumTree) Sum(i, j int) (int, bool) {
-	return t.SegmentTree.Aggregate(i, j)
+	return t.Aggregate(i, j)
 }
